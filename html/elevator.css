@@ -1,0 +1,117 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* NOTE: no backdrop-filter anywhere — FiveM's CEF renders it as an opaque
+   black box instead of a blur. Use solid/alpha colours only. */
+:root {
+  --bg: rgba(24, 24, 26, 0.94);
+  --bg-row: rgba(118, 118, 128, 0.12);
+  --bg-row-hover: rgba(118, 118, 128, 0.24);
+  --sep: rgba(255, 255, 255, 0.08);
+  --text: #f5f5f7;
+  --text-dim: rgba(235, 235, 245, 0.6);
+  --accent: #0a84ff;
+  --gold: #ffd60a;
+}
+
+html, body {
+  width: 100%; height: 100%;
+  background: transparent;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Inter, system-ui, sans-serif;
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+.hidden { display: none !important; }
+
+#panel {
+  position: absolute;
+  top: 50%; right: 5.5vw;
+  transform: translateY(-50%);
+  width: 340px;
+  background: var(--bg);
+  border: 1px solid var(--sep);
+  border-radius: 13px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
+  padding: 18px 16px 12px;
+  animation: rise 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(calc(-50% + 12px)) scale(0.97); }
+  to   { opacity: 1; transform: translateY(-50%) scale(1); }
+}
+
+header {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; padding: 0 6px 14px;
+  border-bottom: 1px solid var(--sep);
+}
+
+.title { display: flex; align-items: center; gap: 11px; }
+
+.mark {
+  width: 30px; height: 30px; border-radius: 6px; flex: none;
+  background: linear-gradient(160deg, #3a3a3c, #1c1c1e);
+  border: 1px solid var(--sep);
+  position: relative;
+}
+.mark::before, .mark::after {
+  content: ''; position: absolute; left: 50%; transform: translateX(-50%);
+  border-left: 4px solid transparent; border-right: 4px solid transparent;
+}
+.mark::before { top: 7px; border-bottom: 5px solid var(--text-dim); }
+.mark::after  { bottom: 7px; border-top: 5px solid var(--text-dim); }
+
+h1 { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+#here { font-size: 12px; color: var(--text-dim); margin-top: 1px; }
+
+.room-tag {
+  text-align: right; padding: 5px 10px; border-radius: 7px;
+  background: rgba(255, 214, 10, 0.12);
+  border: 1px solid rgba(255, 214, 10, 0.25);
+}
+.room-tag .label { display: block; font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-dim); }
+.room-tag .num { font-size: 15px; font-weight: 700; color: var(--gold); }
+
+ul { list-style: none; margin: 10px 0 6px; max-height: 46vh; overflow-y: auto; }
+ul::-webkit-scrollbar { width: 0; }
+
+li {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px; margin-bottom: 4px;
+  background: var(--bg-row); border-radius: 8px;
+  cursor: pointer; transition: background 0.12s ease, transform 0.12s ease;
+}
+li:hover { background: var(--bg-row-hover); }
+li.sel { background: var(--accent); }
+li.sel .sub { color: rgba(255, 255, 255, 0.75); }
+li.here { opacity: 0.45; cursor: default; }
+li.here:hover { background: var(--bg-row); }
+
+.badge {
+  width: 30px; height: 30px; flex: none; border-radius: 6px;
+  display: grid; place-items: center;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 12px; font-weight: 700;
+}
+li.mine .badge { background: rgba(255, 214, 10, 0.18); color: var(--gold); }
+li.sel .badge { background: rgba(255, 255, 255, 0.22); color: #fff; }
+
+.text { flex: 1; min-width: 0; }
+.name { font-size: 13.5px; font-weight: 500; letter-spacing: -0.01em; }
+.sub { font-size: 11px; color: var(--text-dim); margin-top: 1px; }
+
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gold); flex: none; }
+
+footer {
+  display: flex; gap: 14px; justify-content: center;
+  padding: 10px 0 4px; border-top: 1px solid var(--sep);
+  font-size: 10.5px; color: var(--text-dim);
+}
+kbd {
+  display: inline-block; min-width: 16px; text-align: center;
+  padding: 1px 4px; margin-right: 3px;
+  border: 1px solid var(--sep); border-radius: 4px;
+  background: rgba(255, 255, 255, 0.06); font-family: inherit; font-size: 10px;
+}
