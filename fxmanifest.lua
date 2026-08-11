@@ -9,6 +9,19 @@ version '1.0.0'
 license 'LGPL-3.0-or-later'
 repository 'https://github.com/Prompt-Coder/prompt_hotel_system'
 
+-- open source: keymaster encrypts .lua/.js unless listed, so list everything
+escrow_ignore {
+    '*.lua',
+    '**/*.lua',
+    '**/*.js',
+    '**/*.html',
+    '**/*.css',
+    '*.md',
+    '**/*.md',
+    '*.sql',
+    'LICENSE*',
+}
+
 ui_page 'html/elevator.html'
 
 files {

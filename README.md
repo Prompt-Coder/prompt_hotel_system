@@ -12,6 +12,10 @@ Each map ships its own data and registers itself at boot, so a customer who owns
 three of our hotels runs one script, gets one update, and can hold one room at
 each — which three separate scripts could not do.
 
+Source, issues, and updates:
+[github.com/Prompt-Coder/prompt_hotel_system](https://github.com/Prompt-Coder/prompt_hotel_system)
+— free and open source under LGPL-3.0.
+
 ---
 
 ## Ready-made properties
