@@ -415,6 +415,64 @@ suite('rentals', function()
     return done('rentals')
 end)
 
+-- ── access list on join ──────────────────────────────────────────────────
+-- The framework seam is stubbed, so this needs no connected player.
+suite('access', function()
+    local realGet, realConn, realSend = FW.GetIdentifier, FW.Connected, Rentals_SendAccessList
+    local sent = {}
+    Rentals_SendAccessList = function(src, identifier) sent[#sent + 1] = { src = src, id = identifier } end
+    FW.Connected = function() return true end
+
+    FW.GetIdentifier = function() return 'READY_ID' end
+    Rentals_SendAccessListWhenReady(9001)
+    check('answered_immediately_when_identity_exists', #sent == 1 and sent[1].id == 'READY_ID', #sent)
+
+    -- THE BUG: on a framework with character selection the client asks before
+    -- the player object exists, so the identifier is nil for the first seconds.
+    sent = {}
+    local polls = 0
+    FW.GetIdentifier = function() polls = polls + 1; return polls > 2 and 'LATE_ID' or nil end
+    Rentals_SendAccessListWhenReady(9002)
+    check('late_identity_not_answered_yet', #sent == 0, #sent)
+    local waited = 0
+    while #sent == 0 and waited < 8000 do Wait(250); waited = waited + 250 end
+    check('late_identity_answered_when_it_resolves', #sent == 1 and sent[1].id == 'LATE_ID', #sent)
+    check('late_identity_answers_the_right_src', sent[1] and sent[1].src == 9002, sent[1] and sent[1].src)
+
+    -- one wait per player: the request event is callable from any client
+    sent, polls = {}, 0
+    FW.GetIdentifier = function() polls = polls + 1; return nil end
+    Rentals_SendAccessListWhenReady(9003)
+    Rentals_SendAccessListWhenReady(9003)
+    Rentals_SendAccessListWhenReady(9003)
+    Wait(1500)
+    FW.GetIdentifier = function() return 'DEDUPE_ID' end
+    Wait(2000)
+    check('one_wait_per_player', #sent == 1, #sent)
+
+    -- a player who drops mid-wait must not leave a thread polling forever
+    sent, polls = {}, 0
+    FW.GetIdentifier = function() polls = polls + 1; return nil end
+    FW.Connected = function() return false end
+    Rentals_SendAccessListWhenReady(9004)
+    Wait(2500)
+    local settled = polls
+    Wait(1500)
+    check('drop_ends_the_wait', polls == settled, ('%d then %d'):format(settled, polls))
+    check('drop_sends_nothing', #sent == 0, #sent)
+
+    -- character switch: the client never restarts, so login is the only signal
+    sent = {}
+    FW.Connected = function() return true end
+    FW.GetIdentifier = function(src) return 'QB_' .. tostring(src) end
+    TriggerEvent('QBCore:Server:PlayerLoaded', { PlayerData = { source = 9005 } })
+    Wait(200)
+    check('qb_player_loaded_pushes_access', #sent == 1 and sent[1].src == 9005, #sent)
+
+    FW.GetIdentifier, FW.Connected, Rentals_SendAccessList = realGet, realConn, realSend
+    return done('access')
+end)
+
 -- ── public API ───────────────────────────────────────────────────────────
 suite('api', function()
     local me = GetCurrentResourceName()

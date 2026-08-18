@@ -90,6 +90,29 @@ function FW.GetIdentifier(src)
     return GetPlayerIdentifierByType(src, 'license')
 end
 
+function FW.Connected(src)
+    return GetPlayerName(src) ~= nil
+end
+
+-- A framework only builds the player object once the character is chosen, which
+-- is long after the client connects -- measured on QBCore, NetworkIsPlayerActive
+-- is already true while GetPlayer() is still nil. Anything answering a client on
+-- join must wait for identity instead of reading nil as "this player owns nothing".
+function FW.AwaitIdentifier(src, maxMs)
+    local id = FW.GetIdentifier(src)
+    if id then return id end
+
+    local waited, limit = 0, maxMs or 600000
+    while waited < limit do
+        Wait(1000)
+        waited = waited + 1000
+        if not FW.Connected(src) then return nil end
+        id = FW.GetIdentifier(src)
+        if id then return id end
+    end
+    return nil
+end
+
 function FW.GetName(src)
     local p = FW.Player(src)
     if (FW.fw == 'qbcore' or FW.fw == 'qbox') and p then

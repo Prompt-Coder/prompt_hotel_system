@@ -7,11 +7,24 @@ HotelAccess = {}      -- [roomId] = true  (rooms you may enter)
 MyRooms     = {}      -- [propId] = { roomId, num, floor, slot }
 
 local ready = false
+local myRoomIds = {}   -- kept raw: the access list can land before the registry
 
 -- Pulled, not pushed through a statebag: at real-map sizes (hundreds of KB)
 -- FiveM silently drops the value. GlobalState carries just a revision number.
 local fetching = false
 local haveRev  = -1
+
+local function deriveMyRooms()
+    MyRooms = {}
+    for _, roomId in ipairs(myRoomIds) do
+        local room = CRooms[roomId]
+        if room then
+            MyRooms[room.propId] = {
+                roomId = roomId, num = room.num, floor = room.floor, slot = room.slot,
+            }
+        end
+    end
+end
 
 local function fetch()
     if fetching then return end
@@ -34,6 +47,7 @@ local function fetch()
 
     haveRev = reg.rev or 0
     ready   = true
+    deriveMyRooms()
     TriggerEvent(EV('client:registryChanged'))
 end
 
@@ -55,15 +69,8 @@ end
 
 RegisterNetEvent(EV('client:accessList'), function(map, mine)
     HotelAccess = map or {}
-    MyRooms = {}
-    for _, roomId in ipairs(mine or {}) do
-        local room = CRooms[roomId]
-        if room then
-            MyRooms[room.propId] = {
-                roomId = roomId, num = room.num, floor = room.floor, slot = room.slot,
-            }
-        end
-    end
+    myRoomIds = mine or {}
+    deriveMyRooms()
     TriggerEvent(EV('client:accessChanged'))
 end)
 

@@ -173,9 +173,7 @@ RegisterNetEvent(EV('server:openStash'), function(roomId)
 end)
 
 RegisterNetEvent(EV('server:requestAccessList'), function()
-    local src = source
-    local identifier = FW.GetIdentifier(src)
-    if identifier then Rentals_SendAccessList(src, identifier) end
+    Rentals_SendAccessListWhenReady(source)
 end)
 
 -- Published for third-party resources (presence, logging, rest/regen), so it

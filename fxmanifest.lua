@@ -5,7 +5,7 @@ lua54 'yes'
 name 'prompt_hotel_system'
 description 'Hotel system: rentable MLO rooms for any property that registers itself'
 author 'Prompt Studio'
-version '1.0.0'
+version '1.0.1'
 license 'LGPL-3.0-or-later'
 repository 'https://github.com/Prompt-Coder/prompt_hotel_system'
 

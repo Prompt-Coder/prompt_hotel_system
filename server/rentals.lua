@@ -137,6 +137,54 @@ function Rentals_SendAccessList(src, identifier)
     TriggerClientEvent(EV('client:accessList'), src, map, mine)
 end
 
+function Rentals_ClearAccess(src)
+    TriggerClientEvent(EV('client:accessList'), src, {}, {})
+end
+
+-- The client asks for its keys as soon as it has the registry, which on any
+-- framework with character selection is before the player object exists. Reading
+-- that nil as "no rooms" left a renter with no door, no stash and no room blip
+-- for the whole session -- restarting the resource was the only cure, because
+-- that re-ran the client's one and only request.
+local awaitingAccess = {}
+
+function Rentals_SendAccessListWhenReady(src)
+    local identifier = FW.GetIdentifier(src)
+    if identifier then return Rentals_SendAccessList(src, identifier) end
+
+    if awaitingAccess[src] then return end   -- the request event is client-callable
+    awaitingAccess[src] = true
+    CreateThread(function()
+        local id = FW.AwaitIdentifier(src)
+        awaitingAccess[src] = nil
+        if id then
+            Rentals_SendAccessList(src, id)
+        elseif FW.Connected(src) then
+            print(('[prompt_hotel_system] ^3player %d never got an identity from \'%s\' — '
+                .. 'their room keys are missing^0'):format(src, FW.Framework()))
+        end
+    end)
+end
+
+AddEventHandler('playerDropped', function()
+    awaitingAccess[source] = nil
+end)
+
+-- Character switching never restarts the client, so it never asks again: these
+-- are the only signal that identity changed under a connected player.
+AddEventHandler('QBCore:Server:PlayerLoaded', function(player)
+    local src = player and player.PlayerData and player.PlayerData.source
+    if src then Rentals_SendAccessListWhenReady(src) end
+end)
+
+AddEventHandler('esx:playerLoaded', function(src)
+    if src then Rentals_SendAccessListWhenReady(src) end
+end)
+
+AddEventHandler('QBCore:Server:OnPlayerUnload', function(src)
+    if src then Rentals_ClearAccess(src) end
+end)
+
 local function broadcastAccessTo(identifier)
     for _, srcStr in ipairs(GetPlayers()) do
         local psrc = tonumber(srcStr)
